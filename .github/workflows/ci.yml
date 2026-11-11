@@ -23,7 +23,9 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run size
-      - run: npx playwright install --with-deps chromium
+      # The ubuntu-24.04 image already has Chromium's system libraries, so only the browser
+      # is downloaded: no apt step that can fail on a mirror outage.
+      - run: npx playwright install chromium
       - run: npm run test:browser
       - name: Pack and inspect the tarball
         run: npm pack --dry-run
