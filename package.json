@@ -1,0 +1,102 @@
+{
+  "name": "inkshift",
+  "version": "0.1.0",
+  "description": "An organic ink-bleed transition between light and dark themes, with reversible animation, system theme support and a React integration.",
+  "keywords": [
+    "theme",
+    "dark-mode",
+    "light-mode",
+    "theme-toggle",
+    "view-transitions",
+    "animation",
+    "react",
+    "color-scheme"
+  ],
+  "license": "MIT",
+  "author": "Lloyd D'Souza (https://github.com/lloydaq)",
+  "homepage": "https://github.com/lloydaq/inkshift#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lloydaq/inkshift.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lloydaq/inkshift/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/types/react/index.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./transitions.css": "./dist/transitions.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "npm run build:lib && npm run build:demo",
+    "build:lib": "rm -rf dist && vite build && tsc -p tsconfig.build.json && node scripts/build-css.mjs",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "preview": "vite preview --config demo/vite.config.ts --port 4174 --strictPort",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:browser": "playwright test --trace off",
+    "size": "node scripts/size.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build && npm run test:browser",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build:lib"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.9",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.5.0",
+    "jsdom": "^30.1.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
