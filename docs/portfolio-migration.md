@@ -32,7 +32,7 @@ Remaining differences, all deliberate:
 ## Steps
 
 1. **Branch.** Work on `inkshift-migration` in lloyd-portfolio.
-2. **Install.** `npm install inkshift`, or the local tarball until it is published.
+2. **Install.** `npm install inkshift`.
 3. **Header.**
    - Wrap each page root (`main-*.tsx`) in `<ThemeProvider storageKey="theme">`. Do this once per page entry, or once in a shared `Page` wrapper.
    - In `Header.tsx`, replace the theme button with `<ThemeToggle className="icon-button theme-toggle" />`. Keep the portfolio's classes so its icon-button sizing applies.

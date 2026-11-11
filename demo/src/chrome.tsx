@@ -1,5 +1,5 @@
 import { ThemeToggle } from 'inkshift/react';
-import { GITHUB_URL, NPM_URL, PUBLISHED_ON_NPM } from './links';
+import { GITHUB_URL, NPM_URL } from './links';
 import { ArrowUpRight } from './icons';
 
 export function Masthead() {
@@ -37,13 +37,9 @@ export function Footer() {
             </a>
           </li>
           <li>
-            {PUBLISHED_ON_NPM ? (
-              <a href={NPM_URL}>
-                npm package <ArrowUpRight />
-              </a>
-            ) : (
-              <span className="footer__pending">npm package: first release pending</span>
-            )}
+            <a href={NPM_URL}>
+              npm package <ArrowUpRight />
+            </a>
           </li>
         </ul>
       </div>

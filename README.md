@@ -19,8 +19,6 @@ It is not a circular ripple. Each splat is generated from a seeded noise outline
 - **Graceful fallbacks**: colour cross-fade without View Transitions, instant with reduced motion
 - **No runtime dependencies**; about 5 kB gzipped ([measured](#bundle-size))
 
-> **Status:** 0.1.0, not yet published to npm. Until the first release, install from a local build (see [Contributing](CONTRIBUTING.md)).
-
 <p align="center">
   <img alt="Mid-transition: the dark theme spreading over the light page through an irregular ink edge, starting from the toggle." src=".github/assets/demo-ink.png" width="720">
 </p>

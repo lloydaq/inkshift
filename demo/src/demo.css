@@ -960,7 +960,3 @@ input[type='range']:disabled {
   width: 16px;
   height: 16px;
 }
-
-.footer__pending {
-  color: var(--inkshift-muted);
-}
