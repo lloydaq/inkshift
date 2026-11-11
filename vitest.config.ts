@@ -8,5 +8,9 @@ export default defineConfig({
     include: ['tests/**/*.test.{ts,tsx}'],
     setupFiles: ['tests/setup.ts'],
     restoreMocks: true,
+    // The browser doubles drive transitions with real zero-delay timers, which Windows
+    // rounds up to its ~15ms tick: one ink run takes ~2s to settle there, and some tests
+    // run several.
+    testTimeout: 30_000,
   },
 });
