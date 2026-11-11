@@ -55,7 +55,7 @@
   "scripts": {
     "dev": "vite --config demo/vite.config.ts",
     "build": "npm run build:lib && npm run build:demo",
-    "build:lib": "rm -rf dist && vite build && tsc -p tsconfig.build.json && node scripts/build-css.mjs",
+    "build:lib": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" &&vite build && tsc -p tsconfig.build.json && node scripts/build-css.mjs",
     "build:demo": "vite build --config demo/vite.config.ts",
     "preview": "vite preview --config demo/vite.config.ts --port 4174 --strictPort",
     "typecheck": "tsc -p tsconfig.json --noEmit",
