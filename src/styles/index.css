@@ -1,0 +1,3 @@
+/* inkshift/styles.css — tokens and transitions together. */
+@import './tokens.css';
+@import './transitions.css';
