@@ -1,0 +1,46 @@
+/*
+ * inkshift/tokens.css — an optional default palette.
+ *
+ * Warm paper for light, deep charcoal for dark. Every rule is wrapped in :where(), so it
+ * has zero specificity: any rule of your own overrides it. Inkshift's animation does not
+ * depend on these tokens; skip this file and style [data-theme] however you like.
+ */
+
+:where(:root) {
+  --inkshift-background: #f2eee6;
+  --inkshift-surface: #fbf9f4;
+  --inkshift-foreground: #1b1b1f;
+  --inkshift-muted: #57524a;
+  --inkshift-border: #d5cfc3;
+  --inkshift-border-strong: #a9a397;
+  --inkshift-accent: #8f5b0e;
+  --inkshift-focus: #8f5b0e;
+  color-scheme: light;
+}
+
+:where(:root[data-theme='dark']) {
+  --inkshift-background: #16161a;
+  --inkshift-surface: #1e1e23;
+  --inkshift-foreground: #ede6da;
+  --inkshift-muted: #a39e94;
+  --inkshift-border: #33333a;
+  --inkshift-border-strong: #4d4d55;
+  --inkshift-accent: #e0a84f;
+  --inkshift-focus: #e0a84f;
+  color-scheme: dark;
+}
+
+/* Before any script runs (or without JavaScript), follow the operating system. */
+@media (prefers-color-scheme: dark) {
+  :where(:root:not([data-theme])) {
+    --inkshift-background: #16161a;
+    --inkshift-surface: #1e1e23;
+    --inkshift-foreground: #ede6da;
+    --inkshift-muted: #a39e94;
+    --inkshift-border: #33333a;
+    --inkshift-border-strong: #4d4d55;
+    --inkshift-accent: #e0a84f;
+    --inkshift-focus: #e0a84f;
+    color-scheme: dark;
+  }
+}

@@ -1,0 +1,119 @@
+/*
+ * inkshift/transitions.css — the rules the theme switch needs.
+ *
+ * Everything is scoped to classes Inkshift sets on <html> only while a switch is
+ * happening, plus the .inkshift-toggle button, so nothing here touches the rest of your
+ * styles.
+ */
+
+/* ---------- Ink bleed (View Transitions) ---------- */
+
+/* The browser snapshots the page before and after the switch; the old snapshot holds
+   still and the new one is revealed through a growing ink splat (the mask is animated
+   from script). Clicks reach the page underneath, so the toggle can be pressed again
+   mid-spread to pull the ink back. */
+:root.inkshift-transition::view-transition {
+  pointer-events: none;
+}
+
+:root.inkshift-transition::view-transition-old(root),
+:root.inkshift-transition::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+:root.inkshift-transition::view-transition-new(root) {
+  /* Hidden until the splat animation starts, so the new theme never flashes in whole. */
+  -webkit-mask-image: linear-gradient(transparent, transparent);
+  mask-image: linear-gradient(transparent, transparent);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* The theme is applied in one step for the snapshot: no colour transitions, no icon
+   swap mid-fade (the ink is the animation). */
+html.inkshift-switching,
+html.inkshift-switching *,
+html.inkshift-switching *::before,
+html.inkshift-switching *::after {
+  transition: none !important;
+}
+
+/* ---------- Cross-fade fallback ---------- */
+
+/* Without View Transitions: a colour cross-fade, applied only for the length of the
+   switch. Reduced motion never gets here: the switch is instant. */
+html.inkshift-fade,
+html.inkshift-fade *:not(.inkshift-toggle svg),
+html.inkshift-fade *::before,
+html.inkshift-fade *::after {
+  transition:
+    background-color var(--inkshift-fade-duration, 450ms) ease,
+    border-color var(--inkshift-fade-duration, 450ms) ease,
+    color var(--inkshift-fade-duration, 450ms) ease,
+    fill var(--inkshift-fade-duration, 450ms) ease,
+    stroke var(--inkshift-fade-duration, 450ms) ease,
+    box-shadow var(--inkshift-fade-duration, 450ms) ease !important;
+}
+
+/* ---------- <ThemeToggle> ---------- */
+
+/* Base styles have zero specificity (:where), so a class of your own restyles it. */
+:where(.inkshift-toggle) {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--inkshift-border-strong, currentColor);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(.inkshift-toggle):focus-visible {
+  outline: 2px solid var(--inkshift-focus, currentColor);
+  outline-offset: 3px;
+}
+
+/* Icon swap: cross-fade with blur and scale. The icon shows the theme in effect. */
+:where(.inkshift-toggle) svg {
+  position: absolute;
+  inset: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: auto;
+  transition:
+    opacity 250ms ease-in-out,
+    filter 250ms ease-in-out,
+    transform 250ms ease-in-out;
+}
+
+:where(.inkshift-toggle) [data-inkshift-icon='sun'],
+:where(.inkshift-toggle[data-theme-current='light']) [data-inkshift-icon='moon'] {
+  opacity: 0;
+  filter: blur(2px);
+  transform: scale(0.6) rotate(-30deg);
+}
+
+:where(.inkshift-toggle[data-theme-current='light']) [data-inkshift-icon='sun'] {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.inkshift-toggle) svg {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(.inkshift-toggle) {
+    border-color: ButtonText;
+  }
+}
