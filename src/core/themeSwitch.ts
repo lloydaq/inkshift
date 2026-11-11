@@ -1,6 +1,6 @@
 import { CLASS_NAMES, TOGGLE_ATTRIBUTE, imagesInView, nextTask, reverseAnimation, switchInstantly } from './animation';
 import { splatKeyframes, type Splat } from './inkSplat';
-import type { Point, Theme } from './types';
+import type { OriginEvent, Point, Theme } from './types';
 
 /**
  * The ink bleed.
@@ -30,6 +30,12 @@ export interface InkRunOptions {
   revert: () => void;
   /** Reads the theme in effect. */
   read: () => Theme;
+  /**
+   * Handles a press the browser delivered to `<html>` over a toggle. Defaults to
+   * reversing the run; a controller passes its own toggle so that a press arriving after
+   * the ink has landed (but before the transition is torn down) is not lost.
+   */
+  onPress?: (event: OriginEvent) => void;
 }
 
 export interface InkRun {
@@ -55,7 +61,7 @@ export function activeInkRun(doc: Document = document): InkRun | null {
 }
 
 export function startInkRun(options: InkRunOptions): InkRun {
-  const { doc, from, to, origin, trigger, splats, duration, commit, revert, read } = options;
+  const { doc, from, to, origin, trigger, splats, duration, commit, revert, read, onPress: press } = options;
   const root = doc.documentElement;
   const win = doc.defaultView ?? window;
 
@@ -121,7 +127,8 @@ export function startInkRun(options: InkRunOptions): InkRun {
     for (const el of toggles) {
       const box = el.getBoundingClientRect();
       if (event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom) {
-        run.reverse();
+        if (press) press({ clientX: event.clientX, clientY: event.clientY, detail: event.detail, currentTarget: el });
+        else run.reverse();
         return;
       }
     }

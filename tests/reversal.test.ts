@@ -232,6 +232,28 @@ describe('reversal', () => {
     controller.destroy();
   });
 
+  it('a press caught on <html> after the ink lands but before cleanup is not lost', async () => {
+    const { controller } = setup();
+    const toggle = document.createElement('button');
+    toggle.setAttribute('data-inkshift-toggle', '');
+    toggle.getBoundingClientRect = () => ({ left: 10, top: 10, right: 50, bottom: 50, width: 40, height: 40 }) as DOMRect;
+    document.body.append(toggle);
+    controller.toggleTheme(toggle);
+    await flush();
+    await advance(200);
+    controller.toggleTheme(); // reverse
+    inkAnimation()!.finish(); // fully retracted: settled, old theme restored
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(activeInkRun()?.settled).toBe(true);
+    // The transition is still on screen, so the browser hit-tests this press to <html>.
+    root().dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 30, clientY: 30, detail: 1 }));
+    expect(transitions).toHaveLength(2); // a fresh transition, not a swallowed press
+    await settle();
+    expect(theme()).toBe('light'); // three presses
+    controller.destroy();
+  });
+
   it('setTheme towards the theme the ink is leaving reverses it; towards where it is heading does not', async () => {
     const { controller } = setup();
     controller.setTheme('light', { x: 1, y: 1 });

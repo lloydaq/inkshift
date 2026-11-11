@@ -216,6 +216,8 @@ export function createThemeController(options: ThemeControllerOptions = {}): The
           if (ends.prevStored !== undefined) writeStoredRaw(ends.prevStored);
         },
         read,
+        // A press over a toggle that the browser delivered to <html>: same as pressing it.
+        onPress: (event) => toggleTheme(event),
       }),
       { ends },
     );
