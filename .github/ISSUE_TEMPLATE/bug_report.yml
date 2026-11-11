@@ -1,0 +1,41 @@
+name: Bug report
+description: Something about the theme switch does not work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A minimal reproduction (StackBlitz, CodeSandbox or a repository) helps most.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 142 on macOS
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Inkshift version
+    validations:
+      required: true
+  - type: dropdown
+    id: entry
+    attributes:
+      label: Entry point
+      options: ['inkshift (core)', 'inkshift/react']
+  - type: checkboxes
+    id: motion
+    attributes:
+      label: Environment
+      options:
+        - label: prefers-reduced-motion is on
