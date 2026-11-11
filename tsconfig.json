@@ -14,7 +14,13 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "types": ["node", "vite/client"],
-    "noEmit": true
+    "noEmit": true,
+    // The demo imports the package by name; resolve it to source (as demo/vite.config.ts
+    // does) so type checking never depends on a previous build of dist/.
+    "paths": {
+      "inkshift": ["./src/index.ts"],
+      "inkshift/react": ["./src/react/index.ts"]
+    }
   },
   "include": ["src", "tests", "demo", "scripts", "*.ts"]
 }
