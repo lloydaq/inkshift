@@ -9,7 +9,7 @@ All notable changes to this project are documented here. The format follows
 ## [0.1.0] - 2026-11-11
 
 First version, extracted from the theme switch of
-[lloydaq/lloyd-portfolio](https://github.com/lloydaq/lloyd-portfolio). Not yet published to npm.
+[lloydaq/lloyd-portfolio](https://github.com/lloydaq/lloyd-portfolio).
 
 ### Added
 
