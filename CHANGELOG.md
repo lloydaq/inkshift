@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-13
+
 ### Added
 
 - `animation.fluidity` (0–1, default 0): loosens the ink into smoke. The splat outlines are
@@ -42,5 +44,6 @@ First version, extracted from the theme switch of
 - A transition skipped mid-reversal (for example when the tab is hidden) still ends on the original theme.
 - A press that lands after the ink settles, but before the transition is torn down, is no longer lost.
 
-[Unreleased]: https://github.com/lloydaq/inkshift/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/lloydaq/inkshift/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/lloydaq/inkshift/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lloydaq/inkshift/releases/tag/v0.1.0
