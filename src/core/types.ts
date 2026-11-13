@@ -51,6 +51,11 @@ export interface AnimationOptions {
    * reproducible demos and tests. Default: random.
    */
   seed?: number;
+  /**
+   * 0–1. How much the ink behaves like smoke: wispy, soft-edged, curling as it spreads.
+   * Default 0, the original crisp ink. Only affects `ink`.
+   */
+  fluidity?: number;
 }
 
 export interface TransitionInfo {
