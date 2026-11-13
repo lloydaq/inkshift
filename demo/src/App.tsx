@@ -8,6 +8,7 @@ import { Stage } from './Stage';
 import { Reversal } from './Reversal';
 import { Preference } from './Preference';
 import { Configure } from './Configure';
+import { Fluid } from './Fluid';
 import { Customize, Install, ReactUsage, Support } from './Reference';
 import type { LogEntry } from './log';
 
@@ -15,14 +16,19 @@ export interface DemoConfig {
   type: AnimationType;
   duration: number;
   seed: number;
+  /** 0–1 */
+  fluidity: number;
 }
 
 export function App() {
-  const [config, setConfig] = useState<DemoConfig>({ type: 'ink', duration: 1100, seed: 1871 });
+  const [config, setConfig] = useState<DemoConfig>({ type: 'ink', duration: 1100, seed: 1871, fluidity: 0 });
   const [log, setLog] = useState<LogEntry[]>([]);
   const started = useRef<{ at: number; info: TransitionInfo; presses: number } | null>(null);
 
-  const animation = useMemo(() => ({ type: config.type, duration: config.duration, seed: config.seed }), [config]);
+  const animation = useMemo(
+    () => ({ type: config.type, duration: config.duration, seed: config.seed, fluidity: config.fluidity }),
+    [config],
+  );
 
   const onTransitionStart = useCallback((info: TransitionInfo) => {
     started.current = { at: performance.now(), info, presses: 1 };
@@ -51,6 +57,7 @@ export function App() {
         <Reversal log={log} />
         <Preference />
         <Configure config={config} onChange={setConfig} />
+        <Fluid config={config} onChange={setConfig} />
         <Customize />
         <Install />
         <ReactUsage />
