@@ -58,10 +58,12 @@ For an event, `detail === 0` (a keyboard-activated click) uses the centre of `cu
 | `persist` | `boolean` | `true` |
 | `followSystem` | `boolean` | `true` |
 | `respectReducedMotion` | `boolean` | `true` |
-| `animation` | `{ type?: 'ink' \| 'fade' \| 'instant'; duration?: number; seed?: number }` | `{ type: 'ink', duration: 1100 }` |
+| `animation` | `{ type?: 'ink' \| 'fade' \| 'instant'; duration?: number; seed?: number; fluidity?: number }` | `{ type: 'ink', duration: 1100, fluidity: 0 }` |
 | `onThemeChange` | `(state: ThemeState) => void` | |
 | `onTransitionStart` | `(info: { from, to, type }) => void` | |
 | `onTransitionEnd` | `(info: { from, to, type, theme, reversed }) => void` | |
+
+`animation.fluidity` (0–1, default 0) turns the ink smoky; it only affects `ink`. Values outside the range are clamped.
 
 `type` in the transition callbacks is the animation that actually ran, after feature detection. `onTransitionEnd` fires once the transition is fully cleaned up; `reversed` is true when the ink was pressed back.
 
@@ -75,9 +77,11 @@ Returns the source of the first-paint script. It takes `storageKey`, `defaultThe
 
 The function `createInitScript` serialises. Exposed for completeness; prefer `createInitScript`.
 
-### `inkSplat(seed): { url: string; minRadius: number }`
+### `inkSplat(seed, fluidity?): { url: string; minRadius: number }`
 
-One splat from the generator: `url` is a `url("data:image/svg+xml,…")` value ready for `mask-image`, on a 200 × 200 viewBox centred on 0,0. Useful for decoration that matches the transition (the demo's hero drop uses it).
+One splat from the generator. With `fluidity` above 0 (0–1), the same splat warped and blurred into smoke, as the transition uses it.
+
+For the crisp splat, `url` is a `url("data:image/svg+xml,…")` value ready for `mask-image`, on a 200 × 200 viewBox centred on 0,0. Useful for decoration that matches the transition (the demo's hero drop uses it).
 
 ### `supportsInkTransition()`, `supportsViewTransitions()`, `prefersReducedMotion()`
 

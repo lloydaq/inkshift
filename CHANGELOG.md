@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `animation.fluidity` (0–1, default 0): loosens the ink into smoke. The splat outlines are
+  warped into wisps with a soft edge, the two layers curl apart as they spread, and the
+  spread is paced more gently. At 0 the transition is unchanged.
+- `inkSplat(seed, fluidity)` returns the smoky version of a splat.
+- A "smoke" section in the demo.
+
+### Fixed
+
+- The finished splat animation is now released when a transition ends. Previously each
+  switch left one registered on the document, holding its mask images.
+
 ## [0.1.0] - 2026-11-11
 
 First version, extracted from the theme switch of
