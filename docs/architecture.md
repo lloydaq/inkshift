@@ -5,6 +5,7 @@ src/
 ├── core/                 framework-independent
 │   ├── types.ts          public types
 │   ├── inkSplat.ts       splat geometry and spread keyframes (unchanged from the original)
+│   ├── fluid.ts          optional smoke: filtered splats, baking to bitmaps, drift and pacing
 │   ├── animation.ts      origin resolution, instant switch, cross-fade, image wait, reverseAnimation
 │   ├── themeSwitch.ts    one ink run: view transition, splat animation, reversal, click catcher
 │   ├── themeController.ts preferences, storage, system/tab sync, routing presses to runs
@@ -48,6 +49,16 @@ React holds no theme state of its own. `useTheme` subscribes to the controller w
 
 There is at most one run per document, held in a `WeakMap<Document, InkRun>`. A press while a run is moving reverses it; a press after it has landed starts a new one, and the browser skips the old transition.
 
+## Fluidity
+
+`animation.fluidity` (0–1) is an optional layer on top of the ink, in `fluid.ts`. At 0 none of it runs, and `splatKeyframes` output is byte-identical to the original (the parity test covers this).
+
+- **Shape.** `fluidSplat` wraps the original path and droplets in an SVG filter: `feTurbulence` → `feDisplacementMap` (wisps) → `feGaussianBlur` (soft edge), inside a larger viewBox so the soft edge is never clipped.
+- **Baking.** Animating that SVG directly makes the browser re-run the filter on a multi-thousand-pixel mask every frame; measured in Chromium, that stalled for over a second. So each splat is drawn once to a 1024 px canvas and used as a PNG mask, which the compositor only scales. `startInkRun` waits for the pair alongside `transition.ready`; the new snapshot stays hidden behind its empty mask meanwhile. If baking fails or takes longer than 400 ms, the run uses the crisp splats for the same seeds.
+- **Coverage.** A soft edge means the solid part of the mask is smaller than the visible shape. The solid radius is measured from the baked pixels (alpha ≥ 252). The analytic worst-case bound would make the mask about twice as large again and send the visible front off-screen in the first fifth of the duration.
+- **Motion.** `fluidFlow` gives each layer a seeded curl away from the press point, scaled by `sin(πt)` so it is zero at both ends: the transition still starts at the press and ends centred, so the coverage maths is unchanged. The spread curve is raised to the power `1 + fluidity`, because a soft front runs ahead of the solid core.
+- **Reversal** is untouched: it is the same single animation.
+
 ## Behaviours preserved from the original
 
 - The splat algorithm, byte for byte: 240 samples, the eight waves, the tendrils and droplets, the Catmull-Rom smoothing, `minRadius − 1.5` slack. A SHA-256 fingerprint of 50 splats plus a keyframe set, taken from the original source, is asserted in `tests/inkSplat.test.ts`.
@@ -66,6 +77,7 @@ There is at most one run per document, held in a `WeakMap<Document, InkRun>`. A 
 | Reversal restores the previous preference *and* stored value | Toggling then pressing back is a net no-op: a visitor who was following the system keeps following it. |
 | `inkshift-switching` held through the whole update callback | Framework re-renders are captured without transitions in flight. |
 | Generic `data-inkshift-toggle` for the catcher | Works for any number of toggles, not one known button. |
+| The finished animation is cancelled at cleanup | `fill: both` kept every finished splat animation, and the mask images in its keyframes, registered on the document after the transition. |
 
 ## Performance
 

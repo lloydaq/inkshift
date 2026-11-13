@@ -1,5 +1,5 @@
 import { CLASS_NAMES, TOGGLE_ATTRIBUTE, imagesInView, nextTask, reverseAnimation, switchInstantly } from './animation';
-import { splatKeyframes, type Splat } from './inkSplat';
+import { splatKeyframes, type Splat, type SplatFlow } from './inkSplat';
 import type { OriginEvent, Point, Theme } from './types';
 
 /**
@@ -22,7 +22,10 @@ export interface InkRunOptions {
   origin: Point;
   /** The control that was pressed; presses over it during the transition reverse the ink. */
   trigger: Element | null;
-  splats: [Splat, Splat];
+  /** The two splats. May still be on their way (fluid splats are baked to bitmaps first). */
+  splats: [Splat, Splat] | Promise<[Splat, Splat]>;
+  /** Drift and pacing for fluid transitions. */
+  flow?: SplatFlow;
   duration: number;
   /** Puts `to` into effect (attribute, storage). Runs inside the view-transition update. */
   commit: () => void;
@@ -61,7 +64,7 @@ export function activeInkRun(doc: Document = document): InkRun | null {
 }
 
 export function startInkRun(options: InkRunOptions): InkRun {
-  const { doc, from, to, origin, trigger, splats, duration, commit, revert, read, onPress: press } = options;
+  const { doc, from, to, origin, trigger, splats, flow, duration, commit, revert, read, onPress: press } = options;
   const root = doc.documentElement;
   const win = doc.defaultView ?? window;
 
@@ -135,9 +138,11 @@ export function startInkRun(options: InkRunOptions): InkRun {
   };
   doc.addEventListener('click', onPress, true);
 
-  transition.ready
-    .then(() => {
-      const ink = root.animate(splatKeyframes(splats, origin, win.innerWidth, win.innerHeight), {
+  // The new snapshot stays hidden behind its empty mask until the animation starts, so
+  // waiting for the splats here never shows the new theme early.
+  Promise.all([splats, transition.ready])
+    .then(([pair]) => {
+      const ink = root.animate(splatKeyframes(pair, origin, win.innerWidth, win.innerHeight, undefined, flow), {
         duration,
         easing: 'linear', // the spread curve is baked into the keyframes
         fill: 'both',
@@ -165,6 +170,9 @@ export function startInkRun(options: InkRunOptions): InkRun {
     .then(() => {
       settled = true;
       doc.removeEventListener('click', onPress, true);
+      // `fill: both` would keep the finished animation, and the mask images in its
+      // keyframes, registered on the document after the snapshots are gone.
+      animation?.cancel();
       if (runs.get(doc) !== run) return; // superseded by a newer run, which owns the page now
       runs.delete(doc);
       root.classList.remove(CLASS_NAMES.transition);

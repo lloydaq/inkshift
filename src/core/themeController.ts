@@ -1,6 +1,6 @@
 import { CLASS_NAMES, FADE_DURATION_MS, INK_DURATION_MS, crossFade, resolveOrigin, switchInstantly } from './animation';
 import { supportsInkTransition } from './browserSupport';
-import { inkSplat } from './inkSplat';
+import { clampFluidity, fluidFlow, splatPair } from './fluid';
 import {
   DEFAULT_ATTRIBUTE,
   DEFAULT_STORAGE_KEY,
@@ -199,7 +199,10 @@ export function createThemeController(options: ThemeControllerOptions = {}): The
     // exactly as they were. `setTheme` during the run can retarget either end.
     const ends: InkEnds = { prev: preference, next: pref, prevStored: readStoredRaw() };
     const { point, trigger } = resolveOrigin(origin, window);
-    const splats: [ReturnType<typeof inkSplat>, ReturnType<typeof inkSplat>] = [inkSplat(seed++), inkSplat(seed++)];
+    const fluidity = clampFluidity(runtime.animation?.fluidity);
+    const flow = fluidFlow(seed, fluidity);
+    const splats = splatPair(seed, fluidity, doc);
+    seed += 2;
     runtime.onTransitionStart?.(info);
     const ink: ActiveRun = Object.assign(
       startInkRun({
@@ -209,6 +212,7 @@ export function createThemeController(options: ThemeControllerOptions = {}): The
         origin: point,
         trigger,
         splats,
+        flow,
         duration: runtime.animation?.duration ?? INK_DURATION_MS,
         commit: () => apply(ends.next, to),
         revert: () => {

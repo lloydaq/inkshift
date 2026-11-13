@@ -13,6 +13,7 @@ export function Masthead() {
           <a href="#try">Try it</a>
           <a href="#reverse">Reversal</a>
           <a href="#configure">Configure</a>
+          <a href="#fluid">Smoke</a>
           <a href="#install">Install</a>
           <a href={GITHUB_URL}>GitHub</a>
         </nav>

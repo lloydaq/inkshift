@@ -1,6 +1,7 @@
 export { createThemeController } from './core/themeController';
 export { createInitScript, initTheme, type InitScriptOptions } from './core/init';
-export { inkSplat, type Splat } from './core/inkSplat';
+export { fluidSplat as inkSplat } from './core/fluid';
+export type { Splat } from './core/inkSplat';
 export { supportsInkTransition, supportsViewTransitions } from './core/browserSupport';
 export { prefersReducedMotion } from './core/theme';
 export type {

@@ -181,3 +181,94 @@ test.describe('built package in a real browser', () => {
     expect(await themeAttr(page)).toBe('dark');
   });
 });
+
+const controller = (page: Page, fn: string) => page.evaluate(`(${fn})(window.theme)`);
+const INK = `(a) => a.effect && a.effect.pseudoElement === '::view-transition-new(root)'`;
+
+/** Brightness (r+g+b) of the pixel at each corner and the centre of the viewport. */
+async function sample(page: Page): Promise<number[]> {
+  const { width, height } = page.viewportSize()!;
+  const shot = (await page.screenshot()).toString('base64');
+  return page.evaluate(
+    async ({ b64, width, height }) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const ctx = c.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const sx = img.naturalWidth / width;
+      const at = (x: number, y: number) => {
+        const [r, g, b] = ctx.getImageData(Math.round(x * sx), Math.round(y * sx), 1, 1).data;
+        return r! + g! + b!;
+      };
+      // The fixture's buttons sit near the top corners; sample just clear of them.
+      return [at(2, 90), at(width - 3, 90), at(2, height - 3), at(width - 3, height - 3), at(width / 2, height / 2)];
+    },
+    { b64: shot, width, height },
+  );
+}
+
+test.describe('fluidity (smoke) in a real browser', () => {
+  test.beforeEach(async ({ page }) => {
+    await open(page, 'dark');
+    test.skip(!(await supported(page)), 'No View Transitions in this browser');
+    await controller(page, `(t) => t.configure({ animation: { fluidity: 1, seed: 31, duration: 1600 } })`);
+  });
+
+  test('animates baked bitmap masks and covers every corner by the end', async ({ page }) => {
+    const errs = errors(page);
+    await controller(page, `(t) => t.toggleTheme({ x: 200, y: 150 })`);
+    await page.waitForFunction(`document.getAnimations().some(${INK})`);
+    const image = await page.evaluate(`String(document.getAnimations().find(${INK}).effect.getKeyframes()[0].maskImage)`);
+    expect((image as string).match(/data:image\/png/g)).toHaveLength(2);
+
+    // Early on the far corner is still the old (dark) theme: no flash through the soft edge.
+    await page.evaluate(`(() => { const a = document.getAnimations().find(${INK}); a.pause(); a.currentTime = 80; })()`);
+    await page.waitForTimeout(150);
+    expect((await sample(page))[3]!).toBeLessThan(150);
+
+    // At the very end every corner shows the new (light) theme at full strength: the
+    // solid radius measured from the baked pixels really does cover the viewport.
+    await page.evaluate(`(() => { const a = document.getAnimations().find(${INK}); a.currentTime = 1599; })()`);
+    await page.waitForTimeout(150);
+    for (const brightness of await sample(page)) expect(brightness).toBeGreaterThan(680);
+
+    await page.evaluate(`document.getAnimations().find(${INK}).play()`);
+    await settled(page);
+    expect(await themeAttr(page)).toBe('light');
+    expect(errs).toEqual([]);
+  });
+
+  test('reverses mid-flow and restores the old theme', async ({ page }) => {
+    const box = (await page.locator('#toggle').boundingBox())!;
+    const press = () => page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await press();
+    await page.waitForFunction(`document.getAnimations().some(${INK})`);
+    await page.waitForTimeout(300);
+    await press();
+    await page.waitForFunction(`document.getAnimations().some((a) => (${INK})(a) && a.playbackRate < 0)`);
+    await settled(page);
+    expect(await themeAttr(page)).toBe('dark');
+    const ends = await page.evaluate(() => (window as unknown as { ends: { reversed: boolean }[] }).ends);
+    expect(ends).toEqual([expect.objectContaining({ reversed: true, theme: 'dark' })]);
+  });
+
+  test('rapid presses still end on the theme of the last press', async ({ page }) => {
+    const box = (await page.locator('#toggle').boundingBox())!;
+    for (let i = 0; i < 5; i++) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await settled(page);
+    expect(await themeAttr(page)).toBe('light');
+  });
+
+  test('leaves no finished animation behind', async ({ page }) => {
+    for (let i = 0; i < 3; i++) {
+      await controller(page, `(t) => t.toggleTheme({ x: 50, y: 50 })`);
+      await page.waitForFunction(`document.getAnimations().some(${INK})`);
+      await settled(page);
+    }
+    expect(await page.evaluate(`document.getAnimations().filter(${INK}).length`)).toBe(0);
+  });
+});

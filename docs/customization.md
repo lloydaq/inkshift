@@ -116,6 +116,17 @@ const { resolvedTheme, toggleTheme } = useTheme();
 - **`type: 'fade'`:** uses the cross-fade everywhere.
 - **`type: 'instant'`:** switches with no animation.
 
+### Smoke
+
+```tsx
+<ThemeProvider animation={{ fluidity: 0.45, duration: 1500 }} />  // mist
+<ThemeProvider animation={{ fluidity: 1, duration: 2000 }} />     // smoke
+```
+
+- **`fluidity`:** 0–1. `0` is the original crisp ink. Higher values warp the outline into wisps, soften the edge, make the two layers curl apart as they spread, and pace the spread more gently.
+- **Duration:** smoke reads best a little slower than ink.
+- **Seed:** the noise is seeded too, so a fixed `seed` reproduces the same smoke.
+
 The fade's duration is exposed to CSS as `--inkshift-fade-duration` while it runs.
 
 ## Named view transitions on your page

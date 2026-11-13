@@ -120,6 +120,16 @@ export function inkSplat(seed: number): Splat {
   };
 }
 
+export interface SplatFlow {
+  /** Offset of each layer's centre from the origin at time `t`. */
+  drift?: (t: number, layer: number, reach: number) => Point;
+  /**
+   * Exponent applied to the spread curve. Above 1 the front starts slower, which suits
+   * a soft-edged splat whose visible front runs well ahead of its solid core.
+   */
+  pace?: number;
+}
+
 /** Distance from `p` to the farthest corner of a `width` × `height` viewport. */
 export function farthestCorner(p: Point, width: number, height: number): number {
   return Math.max(Math.hypot(p.x, p.y), Math.hypot(width - p.x, p.y), Math.hypot(p.x, height - p.y), Math.hypot(width - p.x, height - p.y));
@@ -134,8 +144,18 @@ export function coveringSize(splat: Splat, distance: number): number {
  * Keyframes for `mask-image/-size/-position` that grow two splats from `origin` until
  * together they cover the whole viewport. The second drop trails the first, so the
  * outline keeps changing as it spreads instead of simply scaling.
+ *
+ * Without `flow` the output is the original's, byte for byte.
  */
-export function splatKeyframes(splats: [Splat, Splat], origin: Point, width: number, height: number, steps = 32): Keyframe[] {
+export function splatKeyframes(
+  splats: [Splat, Splat],
+  origin: Point,
+  width: number,
+  height: number,
+  steps = 32,
+  /** Optional fluid motion (see fluid.ts). Without it the output is the original's. */
+  flow?: SplatFlow,
+): Keyframe[] {
   // A few px past the corner so antialiasing never leaves a hairline of the old theme.
   const reach = farthestCorner(origin, width, height) + 4;
   // 6% headroom: the corners are inked a little before the end, while the drop still moves.
@@ -147,12 +167,17 @@ export function splatKeyframes(splats: [Splat, Splat], origin: Point, width: num
 
   return Array.from({ length: steps + 1 }, (_, i) => {
     const t = i / steps;
-    const sizes = ends.map((end, layer) => end * spread[layer]!(t));
+    const sizes = ends.map((end, layer) => end * (flow?.pace ? spread[layer]!(t) ** flow.pace : spread[layer]!(t)));
     return {
       offset: t,
       maskImage: image,
       maskSize: sizes.map((s) => `${round(s)}px ${round(s)}px`).join(', '),
-      maskPosition: sizes.map((s) => `${round(origin.x - s / 2)}px ${round(origin.y - s / 2)}px`).join(', '),
+      maskPosition: sizes
+        .map((s, layer) => {
+          const d = flow?.drift ? flow.drift(t, layer, reach) : { x: 0, y: 0 };
+          return `${round(origin.x + d.x - s / 2)}px ${round(origin.y + d.y - s / 2)}px`;
+        })
+        .join(', '),
     };
   });
 }

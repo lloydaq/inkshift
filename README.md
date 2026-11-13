@@ -17,7 +17,8 @@ It is not a circular ripple. Each splat is generated from a seeded noise outline
 - **No flash on load**: a tiny inline script sets the theme before first paint
 - **Accessible**: a real button with a clear label, keyboard origin at the button's centre, and `prefers-reduced-motion` switches instantly
 - **Graceful fallbacks**: colour cross-fade without View Transitions, instant with reduced motion
-- **No runtime dependencies**; about 5 kB gzipped ([measured](#bundle-size))
+- **Ink or smoke**: an optional `fluidity` setting loosens the crisp ink into soft, drifting smoke
+- **No runtime dependencies**; about 6 kB gzipped ([measured](#bundle-size))
 
 <p align="center">
   <img alt="Mid-transition: the dark theme spreading over the light page through an irregular ink edge, starting from the toggle." src=".github/assets/demo-ink.png" width="720">
@@ -26,7 +27,7 @@ It is not a circular ripple. Each splat is generated from a seeded noise outline
 ## Contents
 
 - [Install](#install) · [Quick start](#quick-start) · [React](#react) · [Without a framework](#without-a-framework)
-- [Options](#options) · [Styling](#styling) · [First paint](#first-paint) · [Reduced motion](#reduced-motion)
+- [Options](#options) · [Styling](#styling) · [First paint](#first-paint) · [Smoke](#smoke) · [Reduced motion](#reduced-motion)
 - [Browser support](#browser-support) · [Bundle size](#bundle-size) · [How it works](#how-it-works)
 - Full docs: [API](docs/api.md) · [Customization](docs/customization.md) · [Browser support](docs/browser-support.md) · [Architecture](docs/architecture.md)
 
@@ -137,6 +138,7 @@ Shared by `createThemeController(options)` and `<ThemeProvider {...options}>`.
 | `animation.type` | `'ink'` | `'ink'`, `'fade'` or `'instant'` |
 | `animation.duration` | `1100` (ink), `450` (fade) | Milliseconds |
 | `animation.seed` | random | Seed for reproducible splats; each ink run uses the next two |
+| `animation.fluidity` | `0` | 0–1. Above 0 the ink turns smoky: wispy, soft-edged, curling as it spreads. [More](#smoke) |
 | `onThemeChange` | | `(state) => void` |
 | `onTransitionStart` | | `({ from, to, type }) => void` |
 | `onTransitionEnd` | | `({ from, to, type, theme, reversed }) => void` |
@@ -175,6 +177,26 @@ const html = `<script>${createInitScript({ storageKey: 'my-app-theme' })}</scrip
 - **Vite:** inject it with `transformIndexHtml` (the [demo's config](demo/vite.config.ts) does exactly this).
 - **Static HTML:** paste the output of `createInitScript()` into a `<script>` tag.
 
+## Smoke
+
+```tsx
+<ThemeProvider animation={{ fluidity: 1, duration: 2000 }}>
+```
+
+<p align="center">
+  <img alt="Mid-transition with fluidity at 1: the dark theme rolling over the light page behind a soft, wispy, smoke-like front." src=".github/assets/demo-smoke.png" width="720">
+</p>
+
+`fluidity` runs from 0 to 1. At `0` (the default) the transition is the original crisp ink, unchanged. Above it:
+
+- each splat's outline is warped by fractal noise into wisps, and its hard edge is blurred into a soft gradient;
+- the two layers curl away from the press point in opposite directions as they spread, then settle back;
+- the spread is paced more gently, so the front rolls across the page for most of the duration.
+
+It reverses exactly like ink, and still ends with every corner fully covered. A longer duration (1500–2000 ms) suits it.
+
+To keep it smooth, each smoky splat is rendered once to a bitmap before the transition starts, so the browser only scales a texture while animating. If the browser cannot do that, the transition falls back to crisp ink for that switch.
+
 ## Reduced motion
 
 With `prefers-reduced-motion: reduce`, the switch is instant: no ink, no fade, not a shortened animation. The theme still changes and is still stored. Set `respectReducedMotion: false` only if your app offers its own motion setting.
@@ -197,9 +219,9 @@ Measured with `npm run size` (each entry bundled from `dist/` and minified, Reac
 
 | Import | Minified | gzip | brotli |
 | --- | --- | --- | --- |
-| `inkshift` (everything) | 14.32 kB | 5.22 kB | 4.67 kB |
-| `createThemeController` only | 13.29 kB | 4.90 kB | 4.40 kB |
-| `inkshift/react` (everything) | 17.45 kB | 6.35 kB | 5.67 kB |
+| `inkshift` (everything) | 17.47 kB | 6.43 kB | 5.77 kB |
+| `createThemeController` only | 16.44 kB | 6.11 kB | 5.49 kB |
+| `inkshift/react` (everything) | 20.62 kB | 7.58 kB | 6.77 kB |
 | `inkshift/styles.css` (unminified) | 4.99 kB | 1.74 kB | 1.42 kB |
 
 ## How it works

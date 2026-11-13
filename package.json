@@ -1,6 +1,6 @@
 {
   "name": "inkshift",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An organic ink-bleed transition between light and dark themes, with reversible animation, system theme support and a React integration.",
   "keywords": [
     "theme",
