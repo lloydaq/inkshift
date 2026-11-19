@@ -1,0 +1,1 @@
+Your theme toggle doesn't need a circular ripple. Inkshift bleeds the other theme across the whole page from wherever you press, pulls the ink back if you press again before it lands, and can drift in as smoke instead. About 6 kB gzipped, no runtime dependencies: npm install inkshift

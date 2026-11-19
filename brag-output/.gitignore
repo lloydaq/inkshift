@@ -1,0 +1,5 @@
+work/*
+!work/capture.mjs
+!work/compose.html
+!work/render.mjs
+!work/music.py

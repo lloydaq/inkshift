@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: 'Fraunces'; src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2') format('woff2'); font-weight: 100 900; font-style: normal; }
+@font-face { font-family: 'Fraunces'; src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-full-italic.woff2') format('woff2'); font-weight: 100 900; font-style: italic; }
+@font-face { font-family: 'Instrument Sans'; src: url('../../node_modules/@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2') format('woff2'); font-weight: 400 700; }
+@font-face { font-family: 'JetBrains Mono'; src: url('../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2'); font-weight: 100 800; }
+:root { --paper: #f2eee6; --char: #16161a; --fg-dark: #ede6da; --muted-dark: #a39e94; --accent-dark: #e0a84f; --border-dark: #33333a; --surface-dark: #1e1e23; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--char); }
+.layer { position: absolute; inset: 0; display: none; }
+#page { overflow: hidden; }
+#cam { position: absolute; inset: 0; transform-origin: 0 0; }
+#cam img { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#cursor { position: absolute; left: 0; top: 0; width: 34px; height: 46px; transform-origin: 3px 3px; filter: drop-shadow(0 3px 6px rgb(0 0 0 / .28)); }
+.ring { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 2.5px solid #e0a84f; opacity: 0; }
+#caption { position: absolute; left: 50%; bottom: 72px; transform: translateX(-50%); padding: 22px 40px 24px; border-radius: 999px;
+  background: rgb(22 22 26 / .96); border: 1px solid #4d4d55; box-shadow: 0 18px 50px rgb(0 0 0 / .28);
+  color: var(--fg-dark); font: italic 400 46px/1.1 'Fraunces'; font-variation-settings: 'opsz' 72, 'SOFT' 100, 'WONK' 1; letter-spacing: -0.01em; white-space: nowrap; opacity: 0; }
+#caption em { color: var(--accent-dark); }
+.card { background: var(--char); color: var(--fg-dark); display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.wordmark { font: 400 230px/1 'Fraunces'; font-variation-settings: 'opsz' 144, 'SOFT' 50, 'WONK' 0; letter-spacing: -0.035em; }
+.tag { margin-top: 34px; font: italic 400 64px/1.1 'Fraunces'; font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1; color: var(--accent-dark); }
+#outro .wordmark { font-size: 170px; }
+.term { margin-top: 56px; width: 760px; border: 1px solid var(--border-dark); background: #1b1b20; border-radius: 4px; text-align: left; }
+.term__bar { padding: 14px 22px; border-bottom: 1px solid var(--border-dark); font: 500 22px 'Instrument Sans'; color: var(--muted-dark); }
+.term__code { padding: 24px 26px; font: 400 40px 'JetBrains Mono'; color: var(--fg-dark); }
+.term__code span { color: var(--accent-dark); }
+.facts { margin-top: 44px; font: 400 34px 'Instrument Sans'; color: var(--fg-dark); }
+.facts i { font-style: normal; color: var(--border-dark); margin: 0 18px; color: #4d4d55; }
+.url { margin-top: 22px; font: 400 30px 'Instrument Sans'; color: var(--muted-dark); }
+.in { opacity: 0; }
+</style>
+</head>
+<body>
+<div id="page" class="layer">
+  <div id="cam">
+    <img id="frame" alt="">
+    <div class="ring" id="ring1"></div>
+    <div class="ring" id="ring2"></div>
+    <svg id="cursor" viewBox="0 0 34 46"><path d="M3 3 L3 37 L11.5 29 L17.5 43 L23.5 40.5 L17.5 27 L29 27 Z" fill="#111" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg>
+  </div>
+  <div id="caption">Press again before it lands. <em>The ink pulls back.</em></div>
+</div>
+<div id="reveal" class="layer card">
+  <div class="wordmark in" id="r1">Inkshift</div>
+  <div class="tag in" id="r2">An ink-bleed theme switch.</div>
+</div>
+<div id="outro" class="layer card">
+  <div class="wordmark in" id="o1">Inkshift</div>
+  <div class="term in" id="o2"><div class="term__bar">Terminal</div><div class="term__code"><span>$</span> npm install inkshift</div></div>
+  <div class="facts in" id="o3">About 6 kB gzipped<i>·</i>No runtime dependencies<i>·</i>React or plain JS</div>
+  <div class="url in" id="o4">github.com/lloydaq/inkshift</div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const easeOut = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const easeInOut = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+let M = null;
+
+// Scene table, global seconds. Page scenes list cursor keys (local seconds).
+const SCENES = [
+  { id: 's1', kind: 'page', start: 0, end: 4, from: [1600, 860], arrive: 0.42, presses: [0.5], leave: [1.5, 2.3], zoom: 0.045 },
+  { id: 'reveal', kind: 'card', start: 4, end: 6.5 },
+  { id: 's3', kind: 'page', start: 6.5, end: 10.5, from: [1560, 930], arrive: 0.42, presses: [0.5], leave: [1.9, 2.7], zoom: 0.04 },
+  { id: 's4', kind: 'page', start: 10.5, end: 14.5, from: [1520, 760], arrive: 0.42, presses: [0.5, 1.0], leave: [1.7, 2.5], zoom: 0.035, caption: [0.25, 3.85] },
+  { id: 's5', kind: 'page', start: 14.5, end: 18, from: [1350, 930], arrive: 0.42, presses: [0.5], leave: [2.6, 3.3], zoom: 0.04 },
+  { id: 'outro', kind: 'card', start: 18, end: 22 },
+];
+
+function rise(el, t, at, dur = 0.45, dist = 28) {
+  const p = easeOut((t - at) / dur);
+  el.style.opacity = p;
+  el.style.transform = `translateY(${(1 - p) * dist}px)`;
+}
+
+window.render = async function (t) {
+  const s = SCENES.find((x) => t >= x.start && t < x.end) || SCENES[SCENES.length - 1];
+  for (const l of document.querySelectorAll('.layer')) l.style.display = 'none';
+  const local = t - s.start;
+  if (s.kind === 'card') {
+    const el = $(s.id); el.style.display = 'flex';
+    if (s.id === 'reveal') { rise($('r1'), local, 0.05, 0.5, 36); rise($('r2'), local, 0.5); }
+    else { rise($('o1'), local, 0.05, 0.5, 36); rise($('o2'), local, 0.35); rise($('o3'), local, 0.6); rise($('o4'), local, 0.85); }
+    return;
+  }
+  $('page').style.display = 'block';
+  const m = M[s.id];
+  const fi = Math.min(m.frames.length - 1, Math.round(local * 30));
+  const img = $('frame');
+  const src = `frames/${m.frames[fi]}.png`;
+  if (!img.src.endsWith(src)) { img.src = src; await img.decode(); }
+  // Camera: slow push toward the press point.
+  const [px, py] = [m.press.x, m.press.y];
+  const z = 1 + s.zoom * easeInOut(local / (s.end - s.start));
+  $('cam').style.transform = `translate(${px}px, ${py}px) scale(${z}) translate(${-px}px, ${-py}px)`;
+  // Cursor.
+  let x, y;
+  const a = easeOut(local / s.arrive);
+  x = s.from[0] + (px - s.from[0]) * a; y = s.from[1] + (py - s.from[1]) * a;
+  const [l0, l1] = s.leave; const lp = easeInOut((local - l0) / (l1 - l0));
+  x += lp * 260; y += lp * 340;
+  let sc = 1;
+  for (const p of s.presses) { const d = local - p; if (d > -0.06 && d < 0.14) sc = Math.min(sc, 1 - 0.16 * Math.sin(Math.PI * clamp((d + 0.06) / 0.2))); }
+  const c = $('cursor');
+  c.style.transform = `translate(${x - 3}px, ${y - 3}px) scale(${sc})`;
+  c.style.opacity = 1 - lp;
+  s.presses.forEach((p, i) => {
+    const r = $('ring' + (i + 1)); const d = (local - p) / 0.55;
+    if (d < 0 || d > 1) { r.style.opacity = 0; return; }
+    r.style.left = px + 'px'; r.style.top = py + 'px';
+    r.style.transform = `scale(${1 + easeOut(d) * 3.4})`; r.style.opacity = 0.9 * (1 - d);
+  });
+  for (let i = s.presses.length + 1; i <= 2; i++) $('ring' + i).style.opacity = 0;
+  const cap = $('caption');
+  if (s.caption) {
+    const [c0, c1] = s.caption;
+    const pin = easeOut((local - c0) / 0.4), pout = clamp((c1 - local) / 0.25);
+    cap.style.opacity = Math.min(pin, pout);
+    cap.style.transform = `translateX(-50%) translateY(${(1 - pin) * 18}px)`;
+  } else cap.style.opacity = 0;
+};
+
+window.load = async function (manifest) {
+  M = manifest;
+  await document.fonts.load("400 100px 'Fraunces'"); await document.fonts.load("italic 400 100px 'Fraunces'");
+  await document.fonts.load("400 30px 'Instrument Sans'"); await document.fonts.load("400 30px 'JetBrains Mono'");
+  await document.fonts.ready;
+};
+</script>
+</body>
+</html>
