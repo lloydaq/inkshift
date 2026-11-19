@@ -3,3 +3,6 @@ work/*
 !work/compose.html
 !work/render.mjs
 !work/music.py
+!work/capturev.mjs
+!work/composev.html
+!work/renderv.mjs
